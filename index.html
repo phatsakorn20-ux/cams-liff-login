@@ -3,23 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>C.A.M.S. Authentication...</title>
+  <title>C.A.M.S. Authentication</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; background-color: #f2f2f7; }
-    .glass-card { background: rgba(255, 255, 255, 0.9); padding: 30px 40px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; border: 1px solid rgba(255,255,255,0.4); }
-    .spinner { border: 4px solid rgba(88, 86, 214, 0.2); border-top: 4px solid #5856D6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
+    body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f2f2f7; }
+    .glass-card { background: rgba(255, 255, 255, 0.9); padding: 35px 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(10px); min-width: 250px; }
+    .spinner { border: 4px solid rgba(88, 86, 214, 0.15); border-top: 4px solid #5856D6; border-radius: 50%; width: 42px; height: 42px; animation: spin 1s linear infinite; margin: 0 auto 18px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    h3 { color: #333; margin: 10px 0 5px 0; font-size: 1.1rem; }
-    p { color: #8e8e93; margin: 0; font-size: 0.85rem; }
+    h3 { color: #1d1d1f; margin: 0 0 6px 0; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.3px; }
+    p { color: #8e8e93; margin: 0; font-size: 0.9rem; letter-spacing: 0.2px; }
+    .error-icon { font-size: 40px; margin-bottom: 10px; display: none; }
   </style>
 </head>
 <body>
 
   <div class="glass-card">
-    <div class="spinner"></div>
-    <h3 id="statusText">1. เริ่มต้นระบบ...</h3>
-    <p>LINE Authentication</p>
+    <div class="error-icon" id="errorIcon">⚠️</div>
+    <div class="spinner" id="loadingSpinner"></div>
+    <h3 id="statusText">กำลังเข้าสู่ระบบ...</h3>
+    <p id="subText">C.A.M.S. Secure Login</p>
   </div>
 
   <script>
@@ -28,28 +30,27 @@
 
     async function initializeLiff() {
       const statusText = document.getElementById("statusText");
+      const subText = document.getElementById("subText");
+      const spinner = document.getElementById("loadingSpinner");
+      const errorIcon = document.getElementById("errorIcon");
+
       try {
-        statusText.innerText = "2. กำลังเชื่อมต่อ LIFF SDK...";
         await liff.init({ liffId: MY_LIFF_ID });
         
-        statusText.innerText = "3. ตรวจสอบสถานะการล็อกอิน...";
         if (liff.isLoggedIn()) {
-          statusText.innerText = "4. กำลังดึงข้อมูล Profile...";
           const profile = await liff.getProfile();
-          const uid = profile.userId;
-          
-          statusText.innerText = "5. กำลังพาท่านเข้าสู่ระบบ...";
-          // เปลี่ยนจาก replace เป็น href ช่วยลดปัญหาโดนบล็อกการ Redirect
-          window.location.href = MY_GAS_URL + "?page=teacher&uid=" + uid;
+          window.location.href = MY_GAS_URL + "?page=teacher&uid=" + profile.userId;
         } else {
-          statusText.innerText = "กำลังส่งไปหน้าล็อกอินของ LINE...";
+          statusText.innerText = "กำลังเชื่อมต่อกับ LINE...";
           liff.login();
         }
       } catch (err) {
         console.error("LIFF Init Error:", err);
-        // แสดง Error ออกมาให้เห็นชัดๆ บนหน้าจอ
-        statusText.innerText = "Error: " + err.message;
+        spinner.style.display = "none"; // ซ่อนตัวหมุน
+        errorIcon.style.display = "block"; // โชว์ไอคอนเตือน
+        statusText.innerText = "ไม่สามารถเชื่อมต่อได้";
         statusText.style.color = "#FF3B30";
+        subText.innerText = "กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ";
       }
     }
 
