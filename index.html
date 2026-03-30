@@ -4,64 +4,55 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>C.A.M.S. Authentication...</title>
-  <!-- นำเข้า LINE LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { 
-      display: flex; justify-content: center; align-items: center; 
-      height: 100vh; margin: 0; font-family: sans-serif; background-color: #f2f2f7; 
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.9); padding: 30px 40px; 
-      border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); 
-      text-align: center; border: 1px solid rgba(255,255,255,0.4);
-    }
-    .spinner {
-      border: 4px solid rgba(88, 86, 214, 0.2); border-top: 4px solid #5856D6; 
-      border-radius: 50%; width: 40px; height: 40px; 
-      animation: spin 1s linear infinite; margin: 0 auto 15px auto;
-    }
+    body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; background-color: #f2f2f7; }
+    .glass-card { background: rgba(255, 255, 255, 0.9); padding: 30px 40px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; border: 1px solid rgba(255,255,255,0.4); }
+    .spinner { border: 4px solid rgba(88, 86, 214, 0.2); border-top: 4px solid #5856D6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    h3 { color: #333; margin: 10px 0 5px 0; }
-    p { color: #8e8e93; margin: 0; font-size: 0.9rem; }
+    h3 { color: #333; margin: 10px 0 5px 0; font-size: 1.1rem; }
+    p { color: #8e8e93; margin: 0; font-size: 0.85rem; }
   </style>
 </head>
 <body>
 
   <div class="glass-card">
     <div class="spinner"></div>
-    <h3 id="statusText">กำลังยืนยันตัวตน...</h3>
+    <h3 id="statusText">1. เริ่มต้นระบบ...</h3>
     <p>LINE Authentication</p>
   </div>
 
   <script>
-    // 🔴 1. ใส่ LIFF ID ของคุณ (ผมดึงมาจากโค้ดเดิมของคุณให้แล้ว)
     const MY_LIFF_ID = "2009641216-P1ououZt"; 
-    
-    // 🔴 2. ใส่ลิงก์ Web App (GAS) ของคุณ (ลิงก์ที่ลงท้ายด้วย /exec)
     const MY_GAS_URL = "https://script.google.com/macros/s/AKfycbxq9oWCvXjfK7iKvmxruOXN82stmesr6ToZ5ZTKHPGFL2Uk2zLhQlW3FKzvOvRSCDF3/exec";
 
     async function initializeLiff() {
+      const statusText = document.getElementById("statusText");
       try {
+        statusText.innerText = "2. กำลังเชื่อมต่อ LIFF SDK...";
         await liff.init({ liffId: MY_LIFF_ID });
         
+        statusText.innerText = "3. ตรวจสอบสถานะการล็อกอิน...";
         if (liff.isLoggedIn()) {
+          statusText.innerText = "4. กำลังดึงข้อมูล Profile...";
           const profile = await liff.getProfile();
           const uid = profile.userId;
           
-          // เปลี่ยนหน้าต่างไปยัง GAS พร้อมแนบ ?uid= พ่วงท้ายไปที่ URL
-          window.location.replace(MY_GAS_URL + "?page=teacher&uid=" + uid);
+          statusText.innerText = "5. กำลังพาท่านเข้าสู่ระบบ...";
+          // เปลี่ยนจาก replace เป็น href ช่วยลดปัญหาโดนบล็อกการ Redirect
+          window.location.href = MY_GAS_URL + "?page=teacher&uid=" + uid;
         } else {
-          liff.login(); // บังคับล็อกอินถ้ายังไม่ได้ล็อกอิน
+          statusText.innerText = "กำลังส่งไปหน้าล็อกอินของ LINE...";
+          liff.login();
         }
       } catch (err) {
         console.error("LIFF Init Error:", err);
-        document.getElementById("statusText").innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ LINE";
-        document.getElementById("statusText").style.color = "#FF3B30";
+        // แสดง Error ออกมาให้เห็นชัดๆ บนหน้าจอ
+        statusText.innerText = "Error: " + err.message;
+        statusText.style.color = "#FF3B30";
       }
     }
 
-    // เริ่มทำงานทันทีที่โหลดหน้าเว็บเสร็จ
     initializeLiff();
   </script>
 
